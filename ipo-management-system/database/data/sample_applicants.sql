@@ -1,0 +1,11 @@
+INSERT INTO Applicant (ID, Name, PAN, Demat_No) VALUES
+(1, 'John Doe', 'ABCDE1234F', '123456789012'),
+(2, 'Jane Smith', 'FGHIJ5678K', '234567890123'),
+(3, 'Alice Johnson', 'KLMNO9012P', '345678901234'),
+(4, 'Bob Brown', 'QRSTU3456Q', '456789012345'),
+(5, 'Charlie Davis', 'VWXYZ7890R', '567890123456'),
+(6, 'Eve White', 'ABCDE1234G', '678901234567'),
+(7, 'Frank Black', 'FGHIJ5678L', '789012345678'),
+(8, 'Grace Green', 'KLMNO9012Q', '890123456789'),
+(9, 'Hank Blue', 'QRSTU3456R', '901234567890'),
+(10, 'Ivy Red', 'VWXYZ7890S', '012345678901');

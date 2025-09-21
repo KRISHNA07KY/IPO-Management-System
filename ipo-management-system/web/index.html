@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<ht        .container {
+          .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }  max-width: 1200px;
+            margin:         .card {
+            background: #FFFFFF;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #E5E7EB;
+        }
+
+        .card-header {
+            background: #F3F4F6;
+            padding: 15px 20px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .card-header h3 {
+            color: #1F2937;
+            margin-bottom: 5px;
+        }  background: #F5F3F0;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(45, 80, 22, 0.2);
+            overflow: hidden;
+        }"en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPO Management System - Test Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F8F9FA;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #1E3A8A;
+            color: #FFFFFF;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #E5E7EB;
+            border-bottom: 2px solid #D1D5DB;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab:hover {
+            background: #D1D5DB;
+            color: #1F2937;
+        }
+
+        .nav-tab.active {
+            background: #1E3A8A;
+            color: #FFFFFF;
+        }
+
+        .tab-content {
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        .card-header {
+            background: #f5f5f5;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .card-header h3 {
+            color: #000000;
+            margin-bottom: 5px;
+        }
+
+        .card-body {
+            padding: 20px;
+            background: #FFFFFF;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #1E3A8A;
+            color: #FFFFFF;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(30, 58, 138, 0.2);
+        }
+
+        .stat-card h4 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .data-table th {
+            background: #F3F4F6;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .data-table tr:hover {
+            background: #F9FAFB;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #1E3A8A;
+            color: #FFFFFF;
+        }
+
+        .btn-primary:hover {
+            background: #1E40AF;
+            color: #FFFFFF;
+        }
+
+        .btn-success {
+            background: #059669;
+            color: #FFFFFF;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+            color: #FFFFFF;
+        }
+
+        .btn-warning {
+            background: #D97706;
+            color: #FFFFFF;
+        }
+
+        .btn-warning:hover {
+            background: #B45309;
+            color: #FFFFFF;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-open { background: #059669; color: #FFFFFF; }
+        .status-closed { background: #DC2626; color: #FFFFFF; }
+        .status-upcoming { background: #D97706; color: #FFFFFF; }
+        .status-oversubscribed { background: #1E3A8A; color: #FFFFFF; }
+        .status-normal { background: #059669; color: #FFFFFF; }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6B7280;
+        }
+
+        .error {
+            background: #FEE2E2;
+            color: #991B1B;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #FECACA;
+        }
+
+        .success {
+            background: #D1FAE5;
+            color: #065F46;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #D1D5DB;
+            border-radius: 5px;
+            font-size: 16px;
+            background: #FFFFFF;
+            color: #374151;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #1E3A8A;
+            background: #FFFFFF;
+        }
+
+        .test-section {
+            background: #F9FAFB;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .test-section h4 {
+            color: #374151;
+            margin-bottom: 15px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-connected {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-connected .status-dot {
+            background: #059669;
+        }
+
+        .status-disconnected {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status-disconnected .status-dot {
+            background: #DC2626;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>IPO Management System</h1>
+            <p>Test Dashboard & Data Validation</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">Overview</button>
+            <button class="nav-tab" onclick="showTab('ipos')">IPOs</button>
+            <button class="nav-tab" onclick="showTab('applications')">Applications</button>
+            <button class="nav-tab" onclick="showTab('allotments')">Allotments</button>
+            <button class="nav-tab" onclick="showTab('refunds')">Refunds</button>
+            <button class="nav-tab" onclick="showTab('test')">Tests</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-pane active">
+                <div id="connection-status" class="connection-status">
+                    <div class="status-dot"></div>
+                    <span>Checking database connection...</span>
+                </div>
+
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat-card">
+                        <h4 id="total-ipos">-</h4>
+                        <p>Total IPOs</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="total-applicants">-</h4>
+                        <p>Total Applicants</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="total-applications">-</h4>
+                        <p>Total Applications</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4 id="total-allotments">-</h4>
+                        <p>Total Allotments</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>System Health Check</h3>
+                        <p>Verify all database components are working</p>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary" onclick="runHealthCheck()">Run Health Check</button>
+                        <div id="health-results"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IPOs Tab -->
+            <div id="ipos" class="tab-pane">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>IPO List</h3>
+                        <p>All registered IPOs and their status</p>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary" onclick="loadIPOs()">Refresh IPO List</button>
+                        <div id="ipo-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="applications" class="tab-pane">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Application Management</h3>
+                        <p>View and manage IPO applications</p>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary" onclick="loadApplications()">Load Applications</button>
+                        <div id="application-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Allotments Tab -->
+            <div id="allotments" class="tab-pane">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Allotment Processing</h3>
+                        <p>Process IPO allotments and view results</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="test-section">
+                            <h4>Process New Allotment</h4>
+                            <div class="form-group">
+                                <label for="ipo-select">Select IPO:</label>
+                                <select id="ipo-select">
+                                    <option value="">Select an IPO...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="allotment-method">Allotment Method:</label>
+                                <select id="allotment-method">
+                                    <option value="AUTO">Auto (System Decides)</option>
+                                    <option value="PRO_RATA">Pro-Rata</option>
+                                    <option value="LOTTERY">Lottery</option>
+                                    <option value="FULL">Full Allotment</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-success" onclick="processAllotment()">Process Allotment</button>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadAllotments()">View Allotments</button>
+                        <div id="allotment-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Refunds Tab -->
+            <div id="refunds" class="tab-pane">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Refund Management</h3>
+                        <p>Process and track refunds</p>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-warning" onclick="processRefunds()">Process All Pending Refunds</button>
+                        <button class="btn btn-primary" onclick="loadRefunds()">View Refunds</button>
+                        <div id="refund-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Tab -->
+            <div id="test" class="tab-pane">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>System Tests</h3>
+                        <p>Run various tests to validate system functionality</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="test-section">
+                            <h4>Database Connection Test</h4>
+                            <button class="btn btn-primary" onclick="testConnection()">Test Database Connection</button>
+                            <div id="connection-test-result"></div>
+                        </div>
+
+                        <div class="test-section">
+                            <h4>Data Validation Tests</h4>
+                            <button class="btn btn-primary" onclick="testDataValidation()">Test PAN/Demat Validation</button>
+                            <div id="validation-test-result"></div>
+                        </div>
+
+                        <div class="test-section">
+                            <h4>Procedure Tests</h4>
+                            <button class="btn btn-primary" onclick="testProcedures()">Test Stored Procedures</button>
+                            <div id="procedure-test-result"></div>
+                        </div>
+
+                        <div class="test-section">
+                            <h4>View Tests</h4>
+                            <button class="btn btn-primary" onclick="testViews()">Test Database Views</button>
+                            <div id="view-test-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // API calls to backend
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(`api/${endpoint}`, options);
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.error || 'API call failed');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Initialize dashboard
+        async function initDashboard() {
+            try {
+                updateConnectionStatus('connected', 'Database connected successfully');
+                await loadOverviewStats();
+                await populateIPOSelect();
+            } catch (error) {
+                updateConnectionStatus('disconnected', 'Database connection failed: ' + error.message);
+            }
+        }
+
+        function updateConnectionStatus(status, message) {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.className = `connection-status status-${status}`;
+            statusEl.innerHTML = `<div class="status-dot"></div><span>${message}</span>`;
+        }
+
+        async function loadOverviewStats() {
+            try {
+                const stats = await apiCall('stats');
+                document.getElementById('total-ipos').textContent = stats.total_ipos || 0;
+                document.getElementById('total-applicants').textContent = stats.total_applicants || 0;
+                document.getElementById('total-applications').textContent = stats.total_applications || 0;
+                document.getElementById('total-allotments').textContent = stats.total_allotments || 0;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function populateIPOSelect() {
+            try {
+                const ipos = await apiCall('ipos');
+                const select = document.getElementById('ipo-select');
+                select.innerHTML = '<option value="">Select an IPO...</option>';
+                
+                ipos.forEach(ipo => {
+                    const option = document.createElement('option');
+                    option.value = ipo.ipo_id;
+                    option.textContent = `${ipo.company_name} (${ipo.status})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load IPOs for select:', error);
+            }
+        }
+
+        async function runHealthCheck() {
+            const resultsEl = document.getElementById('health-results');
+            resultsEl.innerHTML = '<div class="loading">Running health check...</div>';
+            
+            try {
+                const result = await apiCall('health-check');
+                let html = '<div class="success">Health check completed successfully!</div>';
+                html += '<table class="data-table">';
+                html += '<tr><th>Component</th><th>Status</th><th>Details</th></tr>';
+                
+                result.checks.forEach(check => {
+                    const statusClass = check.status === 'OK' ? 'status-normal' : 'status-oversubscribed';
+                    html += `<tr>
+                        <td>${check.component}</td>
+                        <td><span class="status-badge ${statusClass}">${check.status}</span></td>
+                        <td>${check.details}</td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                resultsEl.innerHTML = html;
+            } catch (error) {
+                resultsEl.innerHTML = `<div class="error">Health check failed: ${error.message}</div>`;
+            }
+        }
+
+        async function loadIPOs() {
+            const listEl = document.getElementById('ipo-list');
+            listEl.innerHTML = '<div class="loading">Loading IPOs...</div>';
+            
+            try {
+                const ipos = await apiCall('ipos/detailed');
+                let html = '<table class="data-table">';
+                html += '<tr><th>Company</th><th>Shares</th><th>Price</th><th>Period</th><th>Status</th><th>Subscription</th></tr>';
+                
+                ipos.forEach(ipo => {
+                    const statusClass = `status-${ipo.status.toLowerCase()}`;
+                    const subscriptionClass = ipo.subscription_ratio > 1 ? 'status-oversubscribed' : 'status-normal';
+                    
+                    html += `<tr>
+                        <td><strong>${ipo.company_name}</strong></td>
+                        <td>${ipo.total_shares.toLocaleString()}</td>
+                        <td>₹${ipo.price_per_share}</td>
+                        <td>${ipo.issue_start_date} to ${ipo.issue_end_date}</td>
+                        <td><span class="status-badge ${statusClass}">${ipo.status}</span></td>
+                        <td><span class="status-badge ${subscriptionClass}">${(ipo.subscription_ratio * 100).toFixed(1)}%</span></td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                listEl.innerHTML = html;
+            } catch (error) {
+                listEl.innerHTML = `<div class="error">Failed to load IPOs: ${error.message}</div>`;
+            }
+        }
+
+        async function loadApplications() {
+            const listEl = document.getElementById('application-list');
+            listEl.innerHTML = '<div class="loading">Loading applications...</div>';
+            
+            try {
+                const applications = await apiCall('applications');
+                let html = '<table class="data-table">';
+                html += '<tr><th>Applicant</th><th>IPO</th><th>Shares</th><th>Amount</th><th>Category</th><th>Status</th></tr>';
+                
+                applications.forEach(app => {
+                    const statusClass = `status-${app.status.toLowerCase()}`;
+                    
+                    html += `<tr>
+                        <td>${app.applicant_name}</td>
+                        <td>${app.company_name}</td>
+                        <td>${app.shares_requested.toLocaleString()}</td>
+                        <td>₹${app.bid_amount.toLocaleString()}</td>
+                        <td>${app.category}</td>
+                        <td><span class="status-badge ${statusClass}">${app.status}</span></td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                listEl.innerHTML = html;
+            } catch (error) {
+                listEl.innerHTML = `<div class="error">Failed to load applications: ${error.message}</div>`;
+            }
+        }
+
+        async function processAllotment() {
+            const ipoId = document.getElementById('ipo-select').value;
+            const method = document.getElementById('allotment-method').value;
+            
+            if (!ipoId) {
+                alert('Please select an IPO');
+                return;
+            }
+            
+            try {
+                const result = await apiCall('allotments/process', 'POST', {
+                    ipo_id: parseInt(ipoId),
+                    method: method
+                });
+                
+                alert('Allotment processed successfully!');
+                await loadAllotments();
+            } catch (error) {
+                alert('Failed to process allotment: ' + error.message);
+            }
+        }
+
+        async function loadAllotments() {
+            const listEl = document.getElementById('allotment-list');
+            listEl.innerHTML = '<div class="loading">Loading allotments...</div>';
+            
+            try {
+                const allotments = await apiCall('allotments');
+                let html = '<table class="data-table">';
+                html += '<tr><th>Applicant</th><th>IPO</th><th>Requested</th><th>Allotted</th><th>Amount</th><th>Method</th><th>Status</th></tr>';
+                
+                allotments.forEach(allot => {
+                    html += `<tr>
+                        <td>${allot.applicant_name}</td>
+                        <td>${allot.company_name}</td>
+                        <td>${allot.shares_requested.toLocaleString()}</td>
+                        <td>${allot.shares_allotted.toLocaleString()}</td>
+                        <td>₹${allot.allotment_amount.toLocaleString()}</td>
+                        <td>${allot.allotment_method || 'N/A'}</td>
+                        <td><span class="status-badge status-normal">${allot.allotment_status}</span></td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                listEl.innerHTML = html;
+            } catch (error) {
+                listEl.innerHTML = `<div class="error">Failed to load allotments: ${error.message}</div>`;
+            }
+        }
+
+        async function processRefunds() {
+            try {
+                const result = await apiCall('refunds/process', 'POST');
+                alert('Refunds processed successfully!');
+                await loadRefunds();
+            } catch (error) {
+                alert('Failed to process refunds: ' + error.message);
+            }
+        }
+
+        async function loadRefunds() {
+            const listEl = document.getElementById('refund-list');
+            listEl.innerHTML = '<div class="loading">Loading refunds...</div>';
+            
+            try {
+                const refunds = await apiCall('refunds');
+                let html = '<table class="data-table">';
+                html += '<tr><th>Applicant</th><th>IPO</th><th>Refund Amount</th><th>Processing Charges</th><th>Net Refund</th><th>Status</th></tr>';
+                
+                refunds.forEach(refund => {
+                    const statusClass = `status-${refund.refund_status.toLowerCase()}`;
+                    
+                    html += `<tr>
+                        <td>${refund.applicant_name}</td>
+                        <td>${refund.company_name}</td>
+                        <td>₹${refund.gross_refund.toLocaleString()}</td>
+                        <td>₹${refund.processing_charges.toLocaleString()}</td>
+                        <td>₹${refund.net_refund.toLocaleString()}</td>
+                        <td><span class="status-badge ${statusClass}">${refund.refund_status}</span></td>
+                    </tr>`;
+                });
+                
+                html += '</table>';
+                listEl.innerHTML = html;
+            } catch (error) {
+                listEl.innerHTML = `<div class="error">Failed to load refunds: ${error.message}</div>`;
+            }
+        }
+
+        // Test functions
+        async function testConnection() {
+            const resultEl = document.getElementById('connection-test-result');
+            resultEl.innerHTML = '<div class="loading">Testing connection...</div>';
+            
+            try {
+                const result = await apiCall('test/connection');
+                resultEl.innerHTML = `<div class="success">✅ Database connection successful! ${result.message}</div>`;
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">❌ Database connection failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testDataValidation() {
+            const resultEl = document.getElementById('validation-test-result');
+            resultEl.innerHTML = '<div class="loading">Testing data validation...</div>';
+            
+            try {
+                const result = await apiCall('test/validation');
+                let html = '<div class="success">✅ Data validation tests completed!</div>';
+                html += '<ul>';
+                result.tests.forEach(test => {
+                    const icon = test.passed ? '✅' : '❌';
+                    html += `<li>${icon} ${test.name}: ${test.result}</li>`;
+                });
+                html += '</ul>';
+                resultEl.innerHTML = html;
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">❌ Validation tests failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testProcedures() {
+            const resultEl = document.getElementById('procedure-test-result');
+            resultEl.innerHTML = '<div class="loading">Testing stored procedures...</div>';
+            
+            try {
+                const result = await apiCall('test/procedures');
+                let html = '<div class="success">✅ Procedure tests completed!</div>';
+                html += '<ul>';
+                result.tests.forEach(test => {
+                    const icon = test.passed ? '✅' : '❌';
+                    html += `<li>${icon} ${test.name}: ${test.result}</li>`;
+                });
+                html += '</ul>';
+                resultEl.innerHTML = html;
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">❌ Procedure tests failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testViews() {
+            const resultEl = document.getElementById('view-test-result');
+            resultEl.innerHTML = '<div class="loading">Testing database views...</div>';
+            
+            try {
+                const result = await apiCall('test/views');
+                let html = '<div class="success">✅ View tests completed!</div>';
+                html += '<ul>';
+                result.tests.forEach(test => {
+                    const icon = test.passed ? '✅' : '❌';
+                    html += `<li>${icon} ${test.name}: ${test.result}</li>`;
+                });
+                html += '</ul>';
+                resultEl.innerHTML = html;
+            } catch (error) {
+                resultEl.innerHTML = `<div class="error">❌ View tests failed: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
