@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPO Management System - Mock Version</title>
+    <style>
+        /* Same styles as main version but includes mock data for testing */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #F8F9FA;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #1E3A8A;
+            color: #FFFFFF;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .notice {
+            background: #FEF3C7;
+            color: #92400E;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #F59E0B;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .stat-card {
+            background: #1E3A8A;
+            color: #FFFFFF;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(30, 58, 138, 0.2);
+        }
+
+        .stat-card h4 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .setup-instructions {
+            padding: 30px;
+            background: #F9FAFB;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .setup-instructions h3 {
+            color: #1E3A8A;
+            margin-bottom: 20px;
+        }
+
+        .setup-step {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .setup-step h4 {
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .setup-step code {
+            background: #F3F4F6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .setup-step pre {
+            background: #1F2937;
+            color: #FFFFFF;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #1E3A8A;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: #1E40AF;
+        }
+
+        .btn-success {
+            background: #059669;
+        }
+
+        .btn-success:hover {
+            background: #047857;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>IPO Management System</h1>
+            <p>Setup Required - Mock Data Version</p>
+        </div>
+
+        <div class="notice">
+            <strong>Notice:</strong> This is a demo version with mock data. Follow the setup instructions below to connect to a real database.
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>5</h4>
+                <p>Total IPOs</p>
+            </div>
+            <div class="stat-card">
+                <h4>1,250</h4>
+                <p>Total Applications</p>
+            </div>
+            <div class="stat-card">
+                <h4>875</h4>
+                <p>Allotments Made</p>
+            </div>
+            <div class="stat-card">
+                <h4>₹2.5 Cr</h4>
+                <p>Total Refunds</p>
+            </div>
+        </div>
+
+        <div class="setup-instructions">
+            <h3>Setup Instructions to Enable Full Functionality</h3>
+
+            <div class="setup-step">
+                <h4>1. Install PHP</h4>
+                <p>Download PHP from <code>https://windows.php.net/download/</code></p>
+                <p>Extract to <code>C:\php</code> and add to system PATH</p>
+                <pre>php -v</pre>
+            </div>
+
+            <div class="setup-step">
+                <h4>2. Install MySQL/XAMPP</h4>
+                <p>Option A: Download XAMPP from <code>https://www.apachefriends.org/</code></p>
+                <p>Option B: Install MySQL separately</p>
+            </div>
+
+            <div class="setup-step">
+                <h4>3. Setup Database</h4>
+                <p>Create database named <code>ipo_management_system</code></p>
+                <p>Run SQL files in this order:</p>
+                <pre>database/schema/01_create_tables.sql
+database/schema/02_constraints_triggers.sql
+database/procedures/allotment_procedures.sql
+database/views/reporting_views.sql
+database/test_data/sample_data.sql</pre>
+            </div>
+
+            <div class="setup-step">
+                <h4>4. Start PHP Server</h4>
+                <p>Open PowerShell in the web directory and run:</p>
+                <pre>cd "c:\Users\HP\OneDrive\Documents\dbproject\ipo-management-system\web"
+php -S localhost:8000</pre>
+                <p>Or double-click <code>start_server.bat</code></p>
+            </div>
+
+            <div class="setup-step">
+                <h4>5. Access Full Application</h4>
+                <p>Open browser and go to: <code>http://localhost:8000</code></p>
+                <button class="btn" onclick="window.open('http://localhost:8000', '_blank')">Try Opening Full App</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Display current status
+        console.log('IPO Management System - Setup Required');
+        console.log('This is a mock version for demonstration purposes.');
+        console.log('Follow the setup instructions to enable full functionality.');
+    </script>
+</body>
+</html>

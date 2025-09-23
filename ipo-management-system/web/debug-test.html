@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Test - IPO API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-result { margin: 20px 0; padding: 15px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Debug Test - IPO API Responses</h1>
+    
+    <button onclick="testIPOsAPI()">Test IPOs API</button>
+    <button onclick="testStatsAPI()">Test Stats API</button>
+    <button onclick="testPopulateSelect()">Test Populate Select Function</button>
+    
+    <div id="results"></div>
+
+    <script>
+        // Copy the exact apiCall function from the main app
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const baseUrl = window.location.origin;
+                const apiUrl = `${baseUrl}/api/${endpoint}`;
+                console.log(`Making API call to: ${apiUrl}`);
+                
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(apiUrl, options);
+                console.log(`Response status: ${response.status} ${response.statusText}`);
+                
+                const result = await response.json();
+                console.log('Response data:', result);
+                
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Test the IPOs API directly
+        async function testIPOsAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h3>Testing IPOs API...</h3>';
+            
+            try {
+                const response = await apiCall('ipos');
+                resultsDiv.innerHTML += `
+                    <div class="test-result success">
+                        <h4>Success: IPOs API Response:</h4>
+                        <pre>${JSON.stringify(response, null, 2)}</pre>
+                        <p><strong>Type of response:</strong> ${typeof response}</p>
+                        <p><strong>Has 'data' property:</strong> ${response.hasOwnProperty('data')}</p>
+                        <p><strong>Response.data type:</strong> ${typeof response.data}</p>
+                        <p><strong>Is response.data an array:</strong> ${Array.isArray(response.data)}</p>
+                        <p><strong>Is response an array:</strong> ${Array.isArray(response)}</p>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="test-result error">
+                        <h4>❌ IPOs API Error:</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Test the Stats API directly
+        async function testStatsAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += '<h3>Testing Stats API...</h3>';
+            
+            try {
+                const response = await apiCall('stats');
+                resultsDiv.innerHTML += `
+                    <div class="test-result success">
+                        <h4>Success: Stats API Response:</h4>
+                        <pre>${JSON.stringify(response, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="test-result error">
+                        <h4>❌ Stats API Error:</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Test the exact populateIPOSelect function logic
+        async function testPopulateSelect() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += '<h3>Testing Populate Select Logic...</h3>';
+            
+            try {
+                console.log('Calling API for IPOs...');
+                const response = await apiCall('ipos');
+                console.log('API response:', response);
+                
+                const ipos = response.data || response;
+                console.log('Processed ipos data:', ipos);
+                console.log('Is ipos an array?', Array.isArray(ipos));
+                
+                let html = `
+                    <div class="test-result success">
+                        <h4>Success: Populate Select Test:</h4>
+                        <p><strong>Original response:</strong></p>
+                        <pre>${JSON.stringify(response, null, 2)}</pre>
+                        <p><strong>Processed ipos:</strong></p>
+                        <pre>${JSON.stringify(ipos, null, 2)}</pre>
+                        <p><strong>Is array:</strong> ${Array.isArray(ipos)}</p>
+                `;
+                
+                if (Array.isArray(ipos)) {
+                    html += `<p><strong>Array length:</strong> ${ipos.length}</p>`;
+                    html += `<p><strong>Processing IPOs:</strong></p><ul>`;
+                    ipos.forEach((ipo, index) => {
+                        html += `<li>IPO ${index + 1}: ${ipo.company_name} (${ipo.status})</li>`;
+                    });
+                    html += `</ul>`;
+                } else {
+                    html += `<p><strong>❌ ERROR: ipos is not an array!</strong></p>`;
+                }
+                
+                html += `</div>`;
+                resultsDiv.innerHTML += html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="test-result error">
+                        <h4>❌ Populate Select Error:</h4>
+                        <p>${error.message}</p>
+                        <pre>${error.stack}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run tests when page loads
+        window.onload = () => {
+            testIPOsAPI();
+        };
+    </script>
+</body>
+</html>

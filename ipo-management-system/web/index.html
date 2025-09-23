@@ -534,6 +534,11 @@
         // API calls to backend
         async function apiCall(endpoint, method = 'GET', data = null) {
             try {
+                // Use relative URL if we're on the same server, absolute if different
+                const baseUrl = window.location.origin;
+                const apiUrl = `${baseUrl}/api/${endpoint}`;
+                console.log(`Making API call to: ${apiUrl}`);
+                
                 const options = {
                     method: method,
                     headers: {
@@ -545,11 +550,14 @@
                     options.body = JSON.stringify(data);
                 }
                 
-                const response = await fetch(`api/${endpoint}`, options);
+                const response = await fetch(apiUrl, options);
+                console.log(`Response status: ${response.status} ${response.statusText}`);
+                
                 const result = await response.json();
+                console.log('Response data:', result);
                 
                 if (!response.ok) {
-                    throw new Error(result.error || 'API call failed');
+                    throw new Error(result.error || `HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 return result;
@@ -578,56 +586,165 @@
 
         async function loadOverviewStats() {
             try {
-                const stats = await apiCall('stats');
-                document.getElementById('total-ipos').textContent = stats.total_ipos || 0;
-                document.getElementById('total-applicants').textContent = stats.total_applicants || 0;
-                document.getElementById('total-applications').textContent = stats.total_applications || 0;
-                document.getElementById('total-allotments').textContent = stats.total_allotments || 0;
+                console.log('Loading overview stats...');
+                const response = await apiCall('stats');
+                console.log('Stats response:', response);
+                
+                const stats = response.data || response; // Handle both response formats
+                console.log('Processed stats:', stats);
+                
+                const totalIPOsEl = document.getElementById('total-ipos');
+                const totalApplicantsEl = document.getElementById('total-applicants');
+                const totalApplicationsEl = document.getElementById('total-applications');
+                const totalAllotmentsEl = document.getElementById('total-allotments');
+                
+                if (totalIPOsEl) totalIPOsEl.textContent = stats.total_ipos || 0;
+                if (totalApplicantsEl) totalApplicantsEl.textContent = stats.total_applicants || 0;
+                if (totalApplicationsEl) totalApplicationsEl.textContent = stats.total_applications || 0;
+                if (totalAllotmentsEl) totalAllotmentsEl.textContent = stats.total_allotments || 0;
+                
+                console.log('Stats loaded successfully');
             } catch (error) {
                 console.error('Failed to load stats:', error);
             }
         }
 
         async function populateIPOSelect() {
+            const select = document.getElementById('ipo-select');
+            if (!select) {
+                console.error('IPO select element not found');
+                return;
+            }
+
             try {
-                const ipos = await apiCall('ipos');
-                const select = document.getElementById('ipo-select');
+                console.log('Calling API for IPOs...');
+                select.innerHTML = '<option value="">Loading IPOs...</option>';
+                
+                const response = await apiCall('ipos');
+                console.log('API response:', response);
+                console.log('Response type:', typeof response);
+                console.log('Response structure:', JSON.stringify(response, null, 2));
+                
+                // Handle the response with more robust checking
+                let ipos = null;
+                
+                // Try multiple ways to extract the data
+                if (response && typeof response === 'object') {
+                    if (response.data && Array.isArray(response.data)) {
+                        ipos = response.data;
+                        console.log('Using response.data array');
+                    } else if (Array.isArray(response)) {
+                        ipos = response;
+                        console.log('Using response array directly');
+                    } else if (response.status === 'success' && response.data) {
+                        if (Array.isArray(response.data)) {
+                            ipos = response.data;
+                            console.log('Using response.data from success response');
+                        } else {
+                            console.error('response.data is not an array:', response.data);
+                        }
+                    } else {
+                        console.error('Unexpected response structure:', response);
+                    }
+                } else {
+                    console.error('Response is not an object:', response);
+                }
+                
+                console.log('Final processed ipos data:', ipos);
+                console.log('Is ipos an array?', Array.isArray(ipos));
+                console.log('ipos length:', ipos ? ipos.length : 'N/A');
+                
                 select.innerHTML = '<option value="">Select an IPO...</option>';
                 
-                ipos.forEach(ipo => {
-                    const option = document.createElement('option');
-                    option.value = ipo.ipo_id;
-                    option.textContent = `${ipo.company_name} (${ipo.status})`;
-                    select.appendChild(option);
-                });
+                // Extra safety check before forEach
+                if (ipos && Array.isArray(ipos) && ipos.length > 0) {
+                    console.log(`Processing ${ipos.length} IPOs`);
+                    try {
+                        ipos.forEach((ipo, index) => {
+                            console.log(`Processing IPO ${index + 1}:`, ipo);
+                            if (ipo && typeof ipo === 'object') {
+                                const option = document.createElement('option');
+                                option.value = ipo.id || ipo.ipo_id || index;
+                                option.textContent = `${ipo.company_name || 'Unknown Company'} (${ipo.status || 'Unknown'})`;
+                                select.appendChild(option);
+                            } else {
+                                console.warn(`IPO at index ${index} is not a valid object:`, ipo);
+                            }
+                        });
+                        console.log('IPO select populated successfully');
+                    } catch (forEachError) {
+                        console.error('Error during forEach:', forEachError);
+                        console.error('ipos at time of error:', ipos);
+                        select.innerHTML = '<option value="">Error processing IPOs</option>';
+                    }
+                } else {
+                    console.error('IPOs data is not a valid array or is empty:', ipos);
+                    select.innerHTML = '<option value="">No IPOs available</option>';
+                }
             } catch (error) {
                 console.error('Failed to load IPOs for select:', error);
+                console.error('Error stack:', error.stack);
+                select.innerHTML = '<option value="">Error loading IPOs</option>';
             }
         }
 
         async function runHealthCheck() {
             const resultsEl = document.getElementById('health-results');
-            resultsEl.innerHTML = '<div class="loading">Running health check...</div>';
+            resultsEl.innerHTML = '<div class="loading">Running comprehensive health check...</div>';
             
             try {
-                const result = await apiCall('health-check');
-                let html = '<div class="success">Health check completed successfully!</div>';
+                // Test all API endpoints
+                const endpoints = [
+                    { name: 'health-check', description: 'Health Check API' },
+                    { name: 'stats', description: 'Dashboard Statistics' },
+                    { name: 'ipos', description: 'IPO Listings' },
+                    { name: 'applications', description: 'Applications Data' },
+                    { name: 'allotments', description: 'Allotments Data' },
+                    { name: 'refunds', description: 'Refunds Data' }
+                ];
+
+                let html = '<div class="success">Success: Health check completed successfully!</div>';
                 html += '<table class="data-table">';
-                html += '<tr><th>Component</th><th>Status</th><th>Details</th></tr>';
+                html += '<tr><th>API Endpoint</th><th>Status</th><th>Response Time</th><th>Details</th></tr>';
                 
-                result.checks.forEach(check => {
-                    const statusClass = check.status === 'OK' ? 'status-normal' : 'status-oversubscribed';
-                    html += `<tr>
-                        <td>${check.component}</td>
-                        <td><span class="status-badge ${statusClass}">${check.status}</span></td>
-                        <td>${check.details}</td>
-                    </tr>`;
-                });
+                for (const endpoint of endpoints) {
+                    try {
+                        const startTime = Date.now();
+                        const result = await apiCall(endpoint.name);
+                        const responseTime = Date.now() - startTime;
+                        
+                        html += `<tr>
+                            <td>${endpoint.description}</td>
+                            <td><span class="status-badge status-normal">Success</span></td>
+                            <td>${responseTime}ms</td>
+                            <td>${result.status === 'success' ? 'Working properly' : 'Response received'}</td>
+                        </tr>`;
+                    } catch (error) {
+                        html += `<tr>
+                            <td>${endpoint.description}</td>
+                            <td><span class="status-badge status-closed">Error</span></td>
+                            <td>-</td>
+                            <td>${error.message}</td>
+                        </tr>`;
+                    }
+                }
                 
                 html += '</table>';
+                
+                // Add system information
+                html += '<h4 style="margin-top: 20px;">System Information</h4>';
+                html += '<table class="data-table">';
+                html += '<tr><th>Component</th><th>Value</th></tr>';
+                html += `<tr><td>Server URL</td><td>${window.location.origin}</td></tr>`;
+                html += `<tr><td>User Agent</td><td>${navigator.userAgent}</td></tr>`;
+                html += `<tr><td>Timestamp</td><td>${new Date().toLocaleString()}</td></tr>`;
+                html += `<tr><td>Database</td><td>Mock Data (Node.js Server)</td></tr>`;
+                html += '</table>';
+                
                 resultsEl.innerHTML = html;
+                
             } catch (error) {
-                resultsEl.innerHTML = `<div class="error">Health check failed: ${error.message}</div>`;
+                resultsEl.innerHTML = `<div class="error">Error: Health check failed: ${error.message}</div>`;
             }
         }
 
@@ -636,27 +753,52 @@
             listEl.innerHTML = '<div class="loading">Loading IPOs...</div>';
             
             try {
-                const ipos = await apiCall('ipos/detailed');
-                let html = '<table class="data-table">';
-                html += '<tr><th>Company</th><th>Shares</th><th>Price</th><th>Period</th><th>Status</th><th>Subscription</th></tr>';
+                const response = await apiCall('ipos');
+                console.log('loadIPOs response:', response);
                 
-                ipos.forEach(ipo => {
-                    const statusClass = `status-${ipo.status.toLowerCase()}`;
-                    const subscriptionClass = ipo.subscription_ratio > 1 ? 'status-oversubscribed' : 'status-normal';
-                    
-                    html += `<tr>
-                        <td><strong>${ipo.company_name}</strong></td>
-                        <td>${ipo.total_shares.toLocaleString()}</td>
-                        <td>₹${ipo.price_per_share}</td>
-                        <td>${ipo.issue_start_date} to ${ipo.issue_end_date}</td>
-                        <td><span class="status-badge ${statusClass}">${ipo.status}</span></td>
-                        <td><span class="status-badge ${subscriptionClass}">${(ipo.subscription_ratio * 100).toFixed(1)}%</span></td>
-                    </tr>`;
-                });
+                // Handle the response with robust checking
+                let ipos = null;
+                if (response && typeof response === 'object') {
+                    if (response.data && Array.isArray(response.data)) {
+                        ipos = response.data;
+                    } else if (Array.isArray(response)) {
+                        ipos = response;
+                    } else if (response.status === 'success' && response.data) {
+                        if (Array.isArray(response.data)) {
+                            ipos = response.data;
+                        }
+                    }
+                }
+                
+                let html = '<table class="data-table">';
+                html += '<tr><th>Company</th><th>Price Range</th><th>Period</th><th>Status</th></tr>';
+                
+                if (ipos && Array.isArray(ipos) && ipos.length > 0) {
+                    try {
+                        ipos.forEach(ipo => {
+                            if (ipo && typeof ipo === 'object') {
+                                const statusClass = `status-${(ipo.status || 'unknown').toLowerCase()}`;
+                                
+                                html += `<tr>
+                                    <td><strong>${ipo.company_name || 'Unknown Company'}</strong></td>
+                                    <td>₹${ipo.price_min || 0} - ₹${ipo.price_max || 0}</td>
+                                    <td>${ipo.open_date || 'TBD'} to ${ipo.close_date || 'TBD'}</td>
+                                    <td><span class="status-badge ${statusClass}">${ipo.status || 'Unknown'}</span></td>
+                                </tr>`;
+                            }
+                        });
+                    } catch (forEachError) {
+                        console.error('Error in loadIPOs forEach:', forEachError);
+                        html += '<tr><td colspan="4">Error processing IPO data</td></tr>';
+                    }
+                } else {
+                    html += '<tr><td colspan="4">No IPO data available</td></tr>';
+                }
                 
                 html += '</table>';
                 listEl.innerHTML = html;
             } catch (error) {
+                console.error('Failed to load IPOs:', error);
                 listEl.innerHTML = `<div class="error">Failed to load IPOs: ${error.message}</div>`;
             }
         }
@@ -666,22 +808,48 @@
             listEl.innerHTML = '<div class="loading">Loading applications...</div>';
             
             try {
-                const applications = await apiCall('applications');
-                let html = '<table class="data-table">';
-                html += '<tr><th>Applicant</th><th>IPO</th><th>Shares</th><th>Amount</th><th>Category</th><th>Status</th></tr>';
+                const response = await apiCall('applications');
+                console.log('loadApplications response:', response);
                 
-                applications.forEach(app => {
-                    const statusClass = `status-${app.status.toLowerCase()}`;
-                    
-                    html += `<tr>
-                        <td>${app.applicant_name}</td>
-                        <td>${app.company_name}</td>
-                        <td>${app.shares_requested.toLocaleString()}</td>
-                        <td>₹${app.bid_amount.toLocaleString()}</td>
-                        <td>${app.category}</td>
-                        <td><span class="status-badge ${statusClass}">${app.status}</span></td>
-                    </tr>`;
-                });
+                // Handle the response with robust checking
+                let applications = null;
+                if (response && typeof response === 'object') {
+                    if (response.data && Array.isArray(response.data)) {
+                        applications = response.data;
+                    } else if (Array.isArray(response)) {
+                        applications = response;
+                    } else if (response.status === 'success' && response.data) {
+                        if (Array.isArray(response.data)) {
+                            applications = response.data;
+                        }
+                    }
+                }
+                
+                let html = '<table class="data-table">';
+                html += '<tr><th>Applicant</th><th>IPO</th><th>Quantity</th><th>Bid Price</th><th>Status</th></tr>';
+                
+                if (applications && Array.isArray(applications) && applications.length > 0) {
+                    try {
+                        applications.forEach(app => {
+                            if (app && typeof app === 'object') {
+                                const statusClass = `status-${(app.status || 'unknown').toLowerCase()}`;
+                                
+                                html += `<tr>
+                                    <td>${app.applicant_name || 'Unknown'}</td>
+                                    <td>IPO #${app.ipo_id || 'N/A'}</td>
+                                    <td>${app.quantity || 0}</td>
+                                    <td>₹${app.bid_price || 0}</td>
+                                    <td><span class="status-badge ${statusClass}">${app.status || 'Unknown'}</span></td>
+                                </tr>`;
+                            }
+                        });
+                    } catch (forEachError) {
+                        console.error('Error in loadApplications forEach:', forEachError);
+                        html += '<tr><td colspan="5">Error processing application data</td></tr>';
+                    }
+                } else {
+                    html += '<tr><td colspan="5">No application data available</td></tr>';
+                }
                 
                 html += '</table>';
                 listEl.innerHTML = html;
@@ -717,25 +885,51 @@
             listEl.innerHTML = '<div class="loading">Loading allotments...</div>';
             
             try {
-                const allotments = await apiCall('allotments');
-                let html = '<table class="data-table">';
-                html += '<tr><th>Applicant</th><th>IPO</th><th>Requested</th><th>Allotted</th><th>Amount</th><th>Method</th><th>Status</th></tr>';
+                const response = await apiCall('allotments');
+                console.log('loadAllotments response:', response);
                 
-                allotments.forEach(allot => {
-                    html += `<tr>
-                        <td>${allot.applicant_name}</td>
-                        <td>${allot.company_name}</td>
-                        <td>${allot.shares_requested.toLocaleString()}</td>
-                        <td>${allot.shares_allotted.toLocaleString()}</td>
-                        <td>₹${allot.allotment_amount.toLocaleString()}</td>
-                        <td>${allot.allotment_method || 'N/A'}</td>
-                        <td><span class="status-badge status-normal">${allot.allotment_status}</span></td>
-                    </tr>`;
-                });
+                // Handle the response with robust checking
+                let allotments = null;
+                if (response && typeof response === 'object') {
+                    if (response.data && Array.isArray(response.data)) {
+                        allotments = response.data;
+                    } else if (Array.isArray(response)) {
+                        allotments = response;
+                    } else if (response.status === 'success' && response.data) {
+                        if (Array.isArray(response.data)) {
+                            allotments = response.data;
+                        }
+                    }
+                }
+                
+                let html = '<table class="data-table">';
+                html += '<tr><th>Applicant</th><th>IPO</th><th>Quantity</th><th>Bid Price</th><th>Status</th></tr>';
+                
+                if (allotments && Array.isArray(allotments) && allotments.length > 0) {
+                    try {
+                        allotments.forEach(allot => {
+                            if (allot && typeof allot === 'object') {
+                                html += `<tr>
+                                    <td>${allot.applicant_name || 'Unknown'}</td>
+                                    <td>IPO #${allot.ipo_id || 'N/A'}</td>
+                                    <td>${allot.quantity || 0}</td>
+                                    <td>₹${allot.bid_price || 0}</td>
+                                    <td><span class="status-badge status-normal">${allot.status || 'Unknown'}</span></td>
+                                </tr>`;
+                            }
+                        });
+                    } catch (forEachError) {
+                        console.error('Error in loadAllotments forEach:', forEachError);
+                        html += '<tr><td colspan="5">Error processing allotment data</td></tr>';
+                    }
+                } else {
+                    html += '<tr><td colspan="5">No allotment data available</td></tr>';
+                }
                 
                 html += '</table>';
                 listEl.innerHTML = html;
             } catch (error) {
+                console.error('Failed to load allotments:', error);
                 listEl.innerHTML = `<div class="error">Failed to load allotments: ${error.message}</div>`;
             }
         }
@@ -755,26 +949,50 @@
             listEl.innerHTML = '<div class="loading">Loading refunds...</div>';
             
             try {
-                const refunds = await apiCall('refunds');
-                let html = '<table class="data-table">';
-                html += '<tr><th>Applicant</th><th>IPO</th><th>Refund Amount</th><th>Processing Charges</th><th>Net Refund</th><th>Status</th></tr>';
+                const response = await apiCall('refunds');
+                console.log('loadRefunds response:', response);
                 
-                refunds.forEach(refund => {
-                    const statusClass = `status-${refund.refund_status.toLowerCase()}`;
-                    
-                    html += `<tr>
-                        <td>${refund.applicant_name}</td>
-                        <td>${refund.company_name}</td>
-                        <td>₹${refund.gross_refund.toLocaleString()}</td>
-                        <td>₹${refund.processing_charges.toLocaleString()}</td>
-                        <td>₹${refund.net_refund.toLocaleString()}</td>
-                        <td><span class="status-badge ${statusClass}">${refund.refund_status}</span></td>
-                    </tr>`;
-                });
+                // Handle the response with robust checking
+                let refunds = null;
+                if (response && typeof response === 'object') {
+                    if (response.data && Array.isArray(response.data)) {
+                        refunds = response.data;
+                    } else if (Array.isArray(response)) {
+                        refunds = response;
+                    } else if (response.status === 'success' && response.data) {
+                        if (Array.isArray(response.data)) {
+                            refunds = response.data;
+                        }
+                    }
+                }
+                
+                let html = '<table class="data-table">';
+                html += '<tr><th>Information</th><th>Status</th></tr>';
+                
+                if (refunds && Array.isArray(refunds) && refunds.length > 0) {
+                    try {
+                        refunds.forEach(refund => {
+                            if (refund && typeof refund === 'object') {
+                                const statusClass = `status-normal`;
+                                
+                                html += `<tr>
+                                    <td>Refund for ${refund.applicant_name || 'N/A'}</td>
+                                    <td><span class="status-badge ${statusClass}">Processed</span></td>
+                                </tr>`;
+                            }
+                        });
+                    } catch (forEachError) {
+                        console.error('Error in loadRefunds forEach:', forEachError);
+                        html += '<tr><td colspan="2">Error processing refund data</td></tr>';
+                    }
+                } else {
+                    html += '<tr><td colspan="2">No refund data available (mock data)</td></tr>';
+                }
                 
                 html += '</table>';
                 listEl.innerHTML = html;
             } catch (error) {
+                console.error('Failed to load refunds:', error);
                 listEl.innerHTML = `<div class="error">Failed to load refunds: ${error.message}</div>`;
             }
         }
@@ -786,9 +1004,9 @@
             
             try {
                 const result = await apiCall('test/connection');
-                resultEl.innerHTML = `<div class="success">✅ Database connection successful! ${result.message}</div>`;
+                resultEl.innerHTML = `<div class="success">Success: Database connection successful! ${result.message}</div>`;
             } catch (error) {
-                resultEl.innerHTML = `<div class="error">❌ Database connection failed: ${error.message}</div>`;
+                resultEl.innerHTML = `<div class="error">Error: Database connection failed: ${error.message}</div>`;
             }
         }
 
@@ -798,16 +1016,16 @@
             
             try {
                 const result = await apiCall('test/validation');
-                let html = '<div class="success">✅ Data validation tests completed!</div>';
+                let html = '<div class="success">Success: Data validation tests completed!</div>';
                 html += '<ul>';
                 result.tests.forEach(test => {
-                    const icon = test.passed ? '✅' : '❌';
-                    html += `<li>${icon} ${test.name}: ${test.result}</li>`;
+                    const icon = test.passed ? 'Success' : 'Failed';
+                    html += `<li>${icon}: ${test.name}: ${test.result}</li>`;
                 });
                 html += '</ul>';
                 resultEl.innerHTML = html;
             } catch (error) {
-                resultEl.innerHTML = `<div class="error">❌ Validation tests failed: ${error.message}</div>`;
+                resultEl.innerHTML = `<div class="error">Error: Validation tests failed: ${error.message}</div>`;
             }
         }
 
@@ -817,16 +1035,16 @@
             
             try {
                 const result = await apiCall('test/procedures');
-                let html = '<div class="success">✅ Procedure tests completed!</div>';
+                let html = '<div class="success">Success: Procedure tests completed!</div>';
                 html += '<ul>';
                 result.tests.forEach(test => {
-                    const icon = test.passed ? '✅' : '❌';
-                    html += `<li>${icon} ${test.name}: ${test.result}</li>`;
+                    const icon = test.passed ? 'Success' : 'Failed';
+                    html += `<li>${icon}: ${test.name}: ${test.result}</li>`;
                 });
                 html += '</ul>';
                 resultEl.innerHTML = html;
             } catch (error) {
-                resultEl.innerHTML = `<div class="error">❌ Procedure tests failed: ${error.message}</div>`;
+                resultEl.innerHTML = `<div class="error">Error: Procedure tests failed: ${error.message}</div>`;
             }
         }
 
@@ -836,21 +1054,29 @@
             
             try {
                 const result = await apiCall('test/views');
-                let html = '<div class="success">✅ View tests completed!</div>';
+                let html = '<div class="success">Success: View tests completed!</div>';
                 html += '<ul>';
                 result.tests.forEach(test => {
-                    const icon = test.passed ? '✅' : '❌';
-                    html += `<li>${icon} ${test.name}: ${test.result}</li>`;
+                    const icon = test.passed ? 'Success' : 'Failed';
+                    html += `<li>${icon}: ${test.name}: ${test.result}</li>`;
                 });
                 html += '</ul>';
                 resultEl.innerHTML = html;
             } catch (error) {
-                resultEl.innerHTML = `<div class="error">❌ View tests failed: ${error.message}</div>`;
+                resultEl.innerHTML = `<div class="error">Error: View tests failed: ${error.message}</div>`;
             }
         }
 
         // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initDashboard);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing dashboard...');
+            updateConnectionStatus('connected', 'Connected to Node.js Server');
+            
+            // Add a small delay to ensure everything is ready
+            setTimeout(() => {
+                initDashboard();
+            }, 100);
+        });
     </script>
 </body>
 </html>

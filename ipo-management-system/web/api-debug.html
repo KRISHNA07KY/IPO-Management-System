@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <div id="results"></div>
+    <button onclick="testAPI()">Test API</button>
+
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                console.log('Testing API...');
+                const response = await fetch('/api/ipos');
+                console.log('Response:', response);
+                
+                const data = await response.json();
+                console.log('Data:', data);
+                console.log('Data type:', typeof data);
+                console.log('Is array?', Array.isArray(data));
+                
+                if (data.data) {
+                    console.log('Has data property:', data.data);
+                    console.log('data.data is array?', Array.isArray(data.data));
+                }
+                
+                resultsDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+                // Test the forEach logic
+                let ipos;
+                if (data && data.data) {
+                    ipos = data.data;
+                } else if (Array.isArray(data)) {
+                    ipos = data;
+                } else {
+                    throw new Error('Invalid response format');
+                }
+                
+                console.log('Processed ipos:', ipos);
+                console.log('ipos is array?', Array.isArray(ipos));
+                
+                if (Array.isArray(ipos)) {
+                    ipos.forEach((ipo, index) => {
+                        console.log(`IPO ${index + 1}:`, ipo);
+                    });
+                } else {
+                    console.error('ipos is not an array:', ipos);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `<div style="color: red;">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
