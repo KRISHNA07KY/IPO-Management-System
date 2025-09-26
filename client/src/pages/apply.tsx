@@ -223,7 +223,7 @@ export default function Apply() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Shares</p>
-                  <p className="font-semibold">{dashboardData.company.totalShares.toLocaleString()}</p>
+                  <p className="font-semibold">{dashboardData.company.totalShares?.toLocaleString() || '0'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Subscription Status</p>
