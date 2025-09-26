@@ -9,8 +9,8 @@ export function AppSidebar() {
     { name: "Dashboard", href: "/", icon: Home },
     { name: "Apply for IPO", href: "/apply", icon: FileText },
     { name: "Applicants", href: "/applicants", icon: Users },
-    { name: "Reports", href: "/reports", icon: BarChart },
     { name: "Allotments", href: "/allotments", icon: Calculator },
+    { name: "Reports", href: "/reports", icon: BarChart },
   ];
 
   return (
@@ -47,13 +47,20 @@ export function AppSidebar() {
       </nav>
       
       <div className="mt-8 pt-8 border-t border-sidebar-border">
-        <button 
-          className="flex items-center gap-3 px-3 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition-colors w-full text-left"
-          data-testid="button-settings"
-        >
-          <Settings className="w-5 h-5" />
-          Settings
-        </button>
+        <Link href="/settings">
+          <div
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors cursor-pointer",
+              location === "/settings"
+                ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            )}
+            data-testid="button-settings"
+          >
+            <Settings className="w-5 h-5" />
+            Settings
+          </div>
+        </Link>
       </div>
     </aside>
   );

@@ -19,6 +19,8 @@ export default function Apply() {
     queryKey: ["/api/dashboard"],
   });
 
+  const dashboardDataObj = dashboardData as any;
+
   const form = useForm<ApplicationForm>({
     resolver: zodResolver(applicationFormSchema),
     defaultValues: {
@@ -54,7 +56,7 @@ export default function Apply() {
   });
 
   const onSubmit = (data: ApplicationForm) => {
-    const pricePerShare = dashboardData?.company?.price || 350;
+    const pricePerShare = dashboardDataObj?.company?.price || 350;
     const submissionData = {
       ...data,
       amount: data.sharesReq * pricePerShare,
@@ -63,7 +65,7 @@ export default function Apply() {
   };
 
   const watchShares = form.watch("sharesReq");
-  const pricePerShare = dashboardData?.company?.price || 350;
+  const pricePerShare = dashboardDataObj?.company?.price || 350;
 
   // Update estimated amount when shares change
   useState(() => {
@@ -206,7 +208,7 @@ export default function Apply() {
         </Card>
 
         {/* IPO Details */}
-        {dashboardData?.company && (
+        {dashboardDataObj?.company && (
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>IPO Details</CardTitle>
@@ -215,21 +217,21 @@ export default function Apply() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Company Name</p>
-                  <p className="font-semibold">{dashboardData.company.name}</p>
+                  <p className="font-semibold">{dashboardDataObj.company.name}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Price per Share</p>
-                  <p className="font-semibold">₹{dashboardData.company.price}</p>
+                  <p className="font-semibold">₹{dashboardDataObj.company.price}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Shares</p>
-                  <p className="font-semibold">{dashboardData.company.totalShares?.toLocaleString() || '0'}</p>
+                  <p className="font-semibold">{dashboardDataObj.company.totalShares?.toLocaleString() || '0'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Subscription Status</p>
                   <p className="font-semibold">
-                    {dashboardData.oversubscriptionRatio?.toFixed(1)}x 
-                    {(dashboardData.oversubscriptionRatio || 0) > 1 ? " Oversubscribed" : " Available"}
+                    {dashboardDataObj.oversubscriptionRatio?.toFixed(1)}x 
+                    {(dashboardDataObj.oversubscriptionRatio || 0) > 1 ? " Oversubscribed" : " Available"}
                   </p>
                 </div>
               </div>

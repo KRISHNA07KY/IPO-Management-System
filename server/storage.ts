@@ -49,10 +49,15 @@ export interface IStorage {
   getApplicationsWithDetails(): Promise<any[]>;
   getAllotmentResults(): Promise<any[]>;
   
+  // Settings methods
+  getSettings(): Promise<any>;
+  updateSettings(key: string, value: any): Promise<void>;
+  
   // Utility methods
-  seedData(): Promise<void>;
   calculateAllotments(companyId: number): Promise<void>;
   calculateRefunds(companyId: number): Promise<void>;
+  getCompanies(): Promise<Company[]>;
+  resetAllData(): Promise<void>;
 }
 
 export class SqliteStorage implements IStorage {
@@ -65,7 +70,8 @@ export class SqliteStorage implements IStorage {
       fs.mkdirSync(dbDir, { recursive: true });
     }
 
-    this.db = new Database(path.resolve(dbDir, "ipo.db"));
+    const dbPath = path.resolve(dbDir, "database.sqlite");
+    this.db = new Database(dbPath);
     this.initTables();
   }
 
@@ -106,11 +112,27 @@ export class SqliteStorage implements IStorage {
         allotment_id INTEGER NOT NULL UNIQUE REFERENCES allotments(id),
         amount REAL NOT NULL
       );
+
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
     `);
   }
 
   async getCompany(id: number): Promise<Company | undefined> {
-    const stmt = this.db.prepare("SELECT * FROM companies WHERE id = ?");
+    const stmt = this.db.prepare(`
+      SELECT 
+        id,
+        name,
+        total_shares as totalShares,
+        price,
+        start_date as startDate,
+        end_date as endDate
+      FROM companies 
+      WHERE id = ?
+    `);
     return stmt.get(id) as Company | undefined;
   }
 
@@ -124,7 +146,18 @@ export class SqliteStorage implements IStorage {
   }
 
   async getActiveCompany(): Promise<Company | undefined> {
-    const stmt = this.db.prepare("SELECT * FROM companies ORDER BY id DESC LIMIT 1");
+    const stmt = this.db.prepare(`
+      SELECT 
+        id,
+        name,
+        total_shares as totalShares,
+        price,
+        start_date as startDate,
+        end_date as endDate
+      FROM companies 
+      ORDER BY id DESC 
+      LIMIT 1
+    `);
     return stmt.get() as Company | undefined;
   }
 
@@ -163,7 +196,16 @@ export class SqliteStorage implements IStorage {
   }
 
   async getApplicationsByCompany(companyId: number): Promise<Application[]> {
-    const stmt = this.db.prepare("SELECT * FROM applications WHERE company_id = ?");
+    const stmt = this.db.prepare(`
+      SELECT 
+        id,
+        applicant_id as applicantId,
+        company_id as companyId,
+        shares_req as sharesReq,
+        amount
+      FROM applications 
+      WHERE company_id = ?
+    `);
     return stmt.all(companyId) as Application[];
   }
 
@@ -192,12 +234,24 @@ export class SqliteStorage implements IStorage {
   }
 
   async createAllotment(allotment: InsertAllotment): Promise<Allotment> {
+    // Validate inputs
+    if (!allotment.applicationId || allotment.sharesAlloted == null || allotment.sharesAlloted < 0) {
+      throw new Error(`Invalid allotment data: applicationId=${allotment.applicationId}, sharesAlloted=${allotment.sharesAlloted}`);
+    }
+
     const stmt = this.db.prepare(`
       INSERT INTO allotments (application_id, shares_alloted)
       VALUES (?, ?)
     `);
-    const result = stmt.run(allotment.applicationId, allotment.sharesAlloted);
-    return { id: result.lastInsertRowid as number, ...allotment };
+    
+    try {
+      const result = stmt.run(allotment.applicationId, allotment.sharesAlloted);
+      return { id: result.lastInsertRowid as number, ...allotment };
+    } catch (error) {
+      console.error('Error creating allotment:', error);
+      console.error('Allotment data:', allotment);
+      throw error;
+    }
   }
 
   async getRefund(id: number): Promise<Refund | undefined> {
@@ -238,10 +292,10 @@ export class SqliteStorage implements IStorage {
       WHERE app.company_id = ?
     `);
 
-    const totalApplications = totalApplicationsStmt.get(company.id)?.count || 0;
-    const totalSharesReq = totalSharesReqStmt.get(company.id)?.total || 0;
-    const totalAmount = totalAmountStmt.get(company.id)?.total || 0;
-    const totalRefunds = totalRefundsStmt.get(company.id)?.total || 0;
+    const totalApplications = (totalApplicationsStmt.get(company.id) as any)?.count || 0;
+    const totalSharesReq = (totalSharesReqStmt.get(company.id) as any)?.total || 0;
+    const totalAmount = (totalAmountStmt.get(company.id) as any)?.total || 0;
+    const totalRefunds = (totalRefundsStmt.get(company.id) as any)?.total || 0;
 
     const oversubscriptionRatio = company.totalShares > 0 ? (totalSharesReq / company.totalShares) : 0;
 
@@ -258,7 +312,11 @@ export class SqliteStorage implements IStorage {
   async getApplicationsWithDetails(): Promise<any[]> {
     const stmt = this.db.prepare(`
       SELECT 
-        app.*,
+        app.id,
+        app.applicant_id,
+        app.company_id,
+        app.shares_req,
+        app.amount,
         applicant.name as applicant_name,
         applicant.pan,
         applicant.demat_no,
@@ -279,11 +337,16 @@ export class SqliteStorage implements IStorage {
   async getAllotmentResults(): Promise<any[]> {
     const stmt = this.db.prepare(`
       SELECT 
-        app.*,
+        app.id,
+        app.applicant_id,
+        app.company_id,
+        app.shares_req,
+        app.amount,
         applicant.name as applicant_name,
         applicant.pan,
         applicant.demat_no,
         c.price,
+        allot.application_id,
         allot.shares_alloted,
         ref.amount as refund_amount,
         CASE 
@@ -301,53 +364,28 @@ export class SqliteStorage implements IStorage {
     return stmt.all();
   }
 
-  async seedData(): Promise<void> {
-    // Clear existing data
-    this.db.exec(`
-      DELETE FROM refunds;
-      DELETE FROM allotments;
-      DELETE FROM applications;
-      DELETE FROM applicants;
-      DELETE FROM companies;
-    `);
-
-    // Create sample IPO
-    const company = await this.createCompany({
-      name: "TechCorp Ltd",
-      totalShares: 500000,
-      price: 350,
-      startDate: "2024-01-01",
-      endDate: "2024-01-15",
-    });
-
-    // Create sample applicants and applications
-    const applicantsData = [
-      { name: "Rajesh Kumar", pan: "ABCDE1234F", dematNo: "1234567890123456", shares: 150 },
-      { name: "Priya Sharma", pan: "FGHIJ5678K", dematNo: "2345678901234567", shares: 200 },
-      { name: "Amit Patel", pan: "KLMNO9012P", dematNo: "3456789012345678", shares: 75 },
-      { name: "Sneha Reddy", pan: "PQRST3456U", dematNo: "4567890123456789", shares: 300 },
-      { name: "Vikram Singh", pan: "UVWXY7890Z", dematNo: "5678901234567890", shares: 500 },
-    ];
-
-    for (const data of applicantsData) {
-      const applicant = await this.createApplicant({
-        name: data.name,
-        pan: data.pan,
-        dematNo: data.dematNo,
-      });
-
-      await this.createApplication({
-        applicantId: applicant.id,
-        companyId: company.id,
-        sharesReq: data.shares,
-        amount: data.shares * company.price,
-      });
-    }
-  }
-
   async calculateAllotments(companyId: number): Promise<void> {
     const company = await this.getCompany(companyId);
     if (!company) throw new Error("Company not found");
+
+    // Clear existing allotments and refunds for this company first
+    const clearRefundsStmt = this.db.prepare(`
+      DELETE FROM refunds 
+      WHERE allotment_id IN (
+        SELECT allot.id FROM allotments allot
+        JOIN applications app ON allot.application_id = app.id
+        WHERE app.company_id = ?
+      )
+    `);
+    clearRefundsStmt.run(companyId);
+
+    const clearAllotmentsStmt = this.db.prepare(`
+      DELETE FROM allotments 
+      WHERE application_id IN (
+        SELECT id FROM applications WHERE company_id = ?
+      )
+    `);
+    clearAllotmentsStmt.run(companyId);
 
     const applications = await this.getApplicationsByCompany(companyId);
     const totalDemand = applications.reduce((sum, app) => sum + app.sharesReq, 0);
@@ -368,7 +406,7 @@ export class SqliteStorage implements IStorage {
         const sharesAlloted = Math.floor(app.sharesReq * allotmentRatio);
         await this.createAllotment({
           applicationId: app.id,
-          sharesAlloted,
+          sharesAlloted: sharesAlloted, // Ensure we're passing a valid number
         });
       }
     }
@@ -390,11 +428,12 @@ export class SqliteStorage implements IStorage {
     const allottedApplications = stmt.all(companyId);
 
     for (const app of allottedApplications) {
-      const refundShares = app.sharesReq - app.shares_alloted;
+      const appData = app as any;
+      const refundShares = appData.sharesReq - appData.shares_alloted;
       if (refundShares > 0) {
         const refundAmount = refundShares * company.price;
         
-        const allotment = await this.getAllotmentByApplication(app.id);
+        const allotment = await this.getAllotmentByApplication(appData.id);
         if (allotment) {
           await this.createRefund({
             allotmentId: allotment.id,
@@ -402,6 +441,95 @@ export class SqliteStorage implements IStorage {
           });
         }
       }
+    }
+  }
+
+  async getCompanies(): Promise<Company[]> {
+    const stmt = this.db.prepare(`
+      SELECT 
+        id,
+        name,
+        total_shares as totalShares,
+        price,
+        start_date as startDate,
+        end_date as endDate
+      FROM companies 
+      ORDER BY id DESC
+    `);
+    return stmt.all() as Company[];
+  }
+
+  async resetAllData(): Promise<void> {
+    this.db.exec(`
+      DELETE FROM refunds;
+      DELETE FROM allotments;
+      DELETE FROM applications;
+      DELETE FROM applicants;
+      DELETE FROM companies;
+      DELETE FROM settings;
+    `);
+  }
+
+  async getSettings(): Promise<any> {
+    const stmt = this.db.prepare("SELECT key, value FROM settings");
+    const rows = stmt.all() as { key: string; value: string }[];
+    
+    // Default settings structure
+    const defaultSettings = {
+      company: {
+        companyName: "",
+        contactEmail: "",
+        contactPhone: "",
+        address: "",
+        defaultIpoPrice: 100,
+        defaultIpoShares: 100000,
+      },
+      system: {
+        enableNotifications: true,
+        autoAllotment: false,
+        autoRefunds: false,
+        emailNotifications: false,
+        maxApplicationsPerUser: 1,
+        defaultAllotmentMode: "pro-rata",
+        theme: "system",
+      },
+      security: {
+        requireStrongPassword: true,
+        sessionTimeout: 60,
+        enableTwoFactor: false,
+        auditLogging: true,
+      },
+    };
+
+    // Merge stored settings with defaults
+    const settings = { ...defaultSettings };
+    rows.forEach(row => {
+      try {
+        const [section, field] = row.key.split('.');
+        if (settings[section as keyof typeof settings] && field) {
+          (settings[section as keyof typeof settings] as any)[field] = JSON.parse(row.value);
+        }
+      } catch (error) {
+        console.warn(`Failed to parse setting ${row.key}:`, error);
+      }
+    });
+
+    return settings;
+  }
+
+  async updateSettings(key: string, value: any): Promise<void> {
+    const stmt = this.db.prepare(`
+      INSERT OR REPLACE INTO settings (key, value, updated_at)
+      VALUES (?, ?, CURRENT_TIMESTAMP)
+    `);
+    
+    if (typeof value === 'object') {
+      // Handle nested settings objects
+      for (const [subKey, subValue] of Object.entries(value)) {
+        stmt.run(`${key}.${subKey}`, JSON.stringify(subValue));
+      }
+    } else {
+      stmt.run(key, JSON.stringify(value));
     }
   }
 }

@@ -56,7 +56,7 @@ RESTful API endpoints organized by functionality:
 
 - `/api/dashboard` - Aggregate statistics and overview data
 - `/api/applications` - CRUD operations for IPO applications
-- `/api/seed` - Development utilities for sample data
+- `/api/settings` - System configuration and preferences
 - `/api/allotments` - Share allocation management
 - Support for future endpoints like company management and user authentication
 

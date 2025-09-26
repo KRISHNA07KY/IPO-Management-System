@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Building, FileText, PieChart, IndianRupee, Calculator, DollarSign, Download, Database } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Dashboard() {
   const { toast } = useToast();
@@ -22,25 +23,9 @@ export default function Dashboard() {
     queryKey: ["/api/allotments"],
   });
 
-  const seedMutation = useMutation({
-    mutationFn: () => apiRequest("POST", "/api/seed"),
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Sample data seeded successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/allotments"] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  const applicationsArray = Array.isArray(applications) ? applications : [];
+  const allotmentsArray = Array.isArray(allotments) ? allotments : [];
+  const dashboardDataObj = dashboardData as any;
 
   const allotmentMutation = useMutation({
     mutationFn: () => apiRequest("POST", "/api/allotment"),
@@ -111,10 +96,12 @@ export default function Dashboard() {
             <p className="text-muted-foreground mt-1">Monitor and manage IPO applications and allotments</p>
           </div>
           <div className="flex items-center gap-4">
-            <Button className="bg-primary text-primary-foreground" data-testid="button-new-ipo">
-              <Building className="mr-2 h-4 w-4" />
-              New IPO
-            </Button>
+            <Link href="/new-ipo">
+              <Button className="bg-primary text-primary-foreground" data-testid="button-new-ipo">
+                <Building className="mr-2 h-4 w-4" />
+                New IPO
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -127,7 +114,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-muted-foreground text-sm font-medium">Active IPO</p>
                 <p className="text-2xl font-bold text-card-foreground mt-1">
-                  {dashboardData?.company?.name || "No Active IPO"}
+                  {dashboardDataObj?.company?.name || "No Active IPO"}
                 </p>
               </div>
               <div className="w-12 h-12 bg-chart-1/10 rounded-xl flex items-center justify-center">
@@ -138,7 +125,7 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <Badge className="bg-chart-2/10 text-chart-2">Active</Badge>
                 <span className="text-muted-foreground text-xs">
-                  Price: ₹{dashboardData?.company?.price || 0}
+                  Price: ₹{dashboardDataObj?.company?.price || 0}
                 </span>
               </div>
             </div>
@@ -151,7 +138,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-muted-foreground text-sm font-medium">Total Applications</p>
                 <p className="text-2xl font-bold text-card-foreground mt-1" data-testid="text-total-applications">
-                  {dashboardData?.totalApplications || 0}
+                  {dashboardDataObj?.totalApplications || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-chart-2/10 rounded-xl flex items-center justify-center">
@@ -170,7 +157,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-muted-foreground text-sm font-medium">Shares Demanded</p>
                 <p className="text-2xl font-bold text-card-foreground mt-1" data-testid="text-shares-demanded">
-                  {dashboardData?.totalSharesReq?.toLocaleString() || 0}
+                  {dashboardDataObj?.totalSharesReq?.toLocaleString() || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-chart-3/10 rounded-xl flex items-center justify-center">
@@ -179,7 +166,7 @@ export default function Dashboard() {
             </div>
             <div className="mt-4">
               <p className="text-chart-3 text-sm font-medium">
-                {dashboardData?.oversubscriptionRatio?.toFixed(1)}x oversubscribed
+                {dashboardDataObj?.oversubscriptionRatio?.toFixed(1)}x oversubscribed
               </p>
             </div>
           </CardContent>
@@ -191,7 +178,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-muted-foreground text-sm font-medium">Total Value</p>
                 <p className="text-2xl font-bold text-card-foreground mt-1" data-testid="text-total-value">
-                  {formatNumber(dashboardData?.totalAmount || 0)}
+                  {formatNumber(dashboardDataObj?.totalAmount || 0)}
                 </p>
               </div>
               <div className="w-12 h-12 bg-chart-4/10 rounded-xl flex items-center justify-center">
@@ -200,7 +187,7 @@ export default function Dashboard() {
             </div>
             <div className="mt-4">
               <p className="text-chart-4 text-sm font-medium">
-                Share price: ₹{dashboardData?.company?.price || 0}
+                Share price: ₹{dashboardDataObj?.company?.price || 0}
               </p>
             </div>
           </CardContent>
@@ -236,15 +223,6 @@ export default function Dashboard() {
               <Download className="mr-2 h-4 w-4" />
               Export Report
             </Button>
-            <Button 
-              onClick={() => seedMutation.mutate()}
-              disabled={seedMutation.isPending}
-              variant="outline"
-              data-testid="button-seed-data"
-            >
-              <Database className="mr-2 h-4 w-4" />
-              {seedMutation.isPending ? "Seeding..." : "Seed Sample Data"}
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -274,7 +252,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              {applications.slice(0, 3).map((app: any) => (
+              {applicationsArray.slice(0, 3).map((app: any) => (
                 <div key={app.id} className="flex items-center justify-between p-4 bg-muted rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-chart-1/10 rounded-full flex items-center justify-center">
@@ -343,7 +321,7 @@ export default function Dashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {allotments.map((result: any) => (
+                  {allotmentsArray.map((result: any) => (
                     <TableRow key={result.id} className="hover:bg-muted transition-colors">
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -391,10 +369,10 @@ export default function Dashboard() {
               <div>
                 <p className="text-muted-foreground text-sm">Oversubscription Ratio</p>
                 <p className="text-2xl font-bold text-card-foreground" data-testid="text-oversubscription-ratio">
-                  {dashboardData?.oversubscriptionRatio?.toFixed(1)}x
+                  {dashboardDataObj?.oversubscriptionRatio?.toFixed(1)}x
                 </p>
                 <p className="text-chart-1 text-sm font-medium">
-                  {(dashboardData?.oversubscriptionRatio || 0) > 1 ? "Oversubscribed" : "Undersubscribed"}
+                  {(dashboardDataObj?.oversubscriptionRatio || 0) > 1 ? "Oversubscribed" : "Undersubscribed"}
                 </p>
               </div>
             </div>
@@ -410,7 +388,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-muted-foreground text-sm">Total Refunds</p>
                 <p className="text-2xl font-bold text-card-foreground" data-testid="text-total-refunds">
-                  {formatNumber(dashboardData?.totalRefunds || 0)}
+                  {formatNumber(dashboardDataObj?.totalRefunds || 0)}
                 </p>
                 <p className="text-chart-3 text-sm font-medium">From excess applications</p>
               </div>
@@ -427,10 +405,10 @@ export default function Dashboard() {
               <div>
                 <p className="text-muted-foreground text-sm">Allotment Status</p>
                 <p className="text-2xl font-bold text-card-foreground" data-testid="text-allotment-progress">
-                  {allotments.length > 0 ? "100%" : "0%"}
+                  {allotmentsArray.length > 0 ? "100%" : "0%"}
                 </p>
                 <p className="text-chart-2 text-sm font-medium">
-                  {allotments.length > 0 ? "Process completed" : "Not started"}
+                  {allotmentsArray.length > 0 ? "Process completed" : "Not started"}
                 </p>
               </div>
             </div>
